@@ -29,6 +29,16 @@ public class IRToolTracking : MonoBehaviour
 
     }
 
+    public float[] GetDepthToWorldTransform()
+    {
+        var depthToWorldTransform = Enumerable.Repeat<float>(0, 8).ToArray();
+#if ENABLE_WINMD_SUPPORT
+        depthToWorldTransform = toolTracking.GetDepthToWorldTransform();        
+#endif
+        return depthToWorldTransform;
+    }
+
+
     public Int64 GetTimestamp()
     {
 #if ENABLE_WINMD_SUPPORT

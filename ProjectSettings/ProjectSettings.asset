@@ -213,6 +213,9 @@ PlayerSettings:
   - {fileID: 0}
   - {fileID: 0}
   - {fileID: 0}
+  - {fileID: 11400000, guid: 60823fc2d09363c499f0789c10922e47, type: 2}
+  - {fileID: 7923538589409489242, guid: 45b89a8293ac8924f9882b08a9098613, type: 2}
+  - {fileID: -7405519100350010473, guid: dc9fed8969f7fbf47b9c8e96ebb341c1, type: 2}
   metroInputSource: 0
   wsaTransparentSwapchain: 0
   m_HolographicPauseOnTrackingLoss: 0
@@ -222,13 +225,11 @@ PlayerSettings:
     enable360StereoCapture: 0
   isWsaHolographicRemotingEnabled: 0
   enableFrameTimingStats: 0
-  enableOpenGLProfilerGPURecorders: 1
   useHDRDisplay: 0
   D3DHDRBitDepth: 0
   m_ColorGamuts: 00000000
   targetPixelDensity: 30
   resolutionScalingMode: 0
-  resetResolutionOnWindowResize: 0
   androidSupportedAspectRatio: 1
   androidMaxAspectRatio: 2.1
   applicationIdentifier:
@@ -591,7 +592,6 @@ PlayerSettings:
       m_Kind: 0
       m_SubKind: iPad
   m_BuildTargetBatching: []
-  m_BuildTargetShaderSettings: []
   m_BuildTargetGraphicsJobs:
   - m_BuildTarget: MacStandaloneSupport
     m_GraphicsJobs: 0
@@ -632,8 +632,6 @@ PlayerSettings:
     m_APIs: 10000000
     m_Automatic: 1
   m_BuildTargetVRSettings: []
-  m_DefaultShaderChunkSizeInMB: 16
-  m_DefaultShaderChunkCount: 0
   openGLRequireES31: 0
   openGLRequireES31AEP: 0
   openGLRequireES32: 0
@@ -800,7 +798,6 @@ PlayerSettings:
   switchNetworkInterfaceManagerInitializeEnabled: 1
   switchPlayerConnectionEnabled: 1
   switchUseNewStyleFilepaths: 0
-  switchUseLegacyFmodPriorities: 1
   switchUseMicroSleepForYield: 1
   switchEnableRamDiskSupport: 0
   switchMicroSleepForYieldTime: 25
@@ -875,7 +872,6 @@ PlayerSettings:
   ps4videoRecordingFeaturesUsed: 0
   ps4contentSearchFeaturesUsed: 0
   ps4CompatibilityPS5: 0
-  ps4AllowPS5Detection: 0
   ps4GPU800MHz: 1
   ps4attribEyeToEyeDistanceSettingVR: 0
   ps4IncludedModules: []
@@ -900,9 +896,9 @@ PlayerSettings:
   webGLLinkerTarget: 0
   webGLThreadsSupport: 0
   webGLDecompressionFallback: 0
-  webGLPowerPreference: 2
   scriptingDefineSymbols:
     Android: VUFORIA_ANDROID_SETTINGS;UNITY_POST_PROCESSING_STACK_V2
+    CloudRendering: UNITY_POST_PROCESSING_STACK_V2
     EmbeddedLinux: UNITY_POST_PROCESSING_STACK_V2
     GameCoreXboxOne: UNITY_POST_PROCESSING_STACK_V2
     Lumin: UNITY_POST_PROCESSING_STACK_V2
@@ -935,7 +931,6 @@ PlayerSettings:
   allowUnsafeCode: 0
   useDeterministicCompilation: 1
   enableRoslynAnalyzers: 1
-  selectedPlatform: 3
   additionalIl2CppArgs: 
   scriptingRuntimeVersion: 1
   gcIncremental: 0
@@ -947,10 +942,10 @@ PlayerSettings:
   metroPackageName: HL2IRToolTrackingSample
   metroPackageVersion: 1.0.0.0
   metroCertificatePath: Assets/WSATestCertificate.pfx
-  metroCertificatePassword: 
-  metroCertificateSubject: TUM-CAMPAR
-  metroCertificateIssuer: TUM-CAMPAR
-  metroCertificateNotAfter: 80de154c28f0d901
+  metroCertificatePassword: '|ixi~k~|'
+  metroCertificateSubject: Test
+  metroCertificateIssuer: Test
+  metroCertificateNotAfter: 8014c982a821db01
   metroApplicationDescription: MSc - HipArthroscopy
   wsaImages:
     65636: 
@@ -1030,10 +1025,10 @@ PlayerSettings:
       PointOfService: False
       RecordedCallsFolder: False
       Contacts: False
+      Proximity: False
       InternetClient: True
       CodeGeneration: False
       BackgroundMediaPlayback: False
-      Proximity: False
   metroTargetDeviceFamilies:
     Desktop: False
     Holographic: True
@@ -1088,7 +1083,6 @@ PlayerSettings:
     m_VersionName: 10.10.2
   apiCompatibilityLevel: 3
   activeInputHandler: 2
-  windowsGamepadBackendHint: 0
   cloudProjectId: 
   framebufferDepthMemorylessMode: 0
   qualitySettingsNames: []

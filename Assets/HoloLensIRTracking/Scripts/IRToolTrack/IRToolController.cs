@@ -3,6 +3,8 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.Linq;
+using TMPro;
 using UnityEngine;
 using UnityEngine.UIElements;
 
@@ -10,7 +12,14 @@ namespace IRToolTrack
 {
     public class IRToolController : MonoBehaviour
     {
-        
+
+        public GameObject depthToWorld;
+        public GameObject targetToDepth;
+        public GameObject targetToDepthText;
+        public GameObject depthToWorldText;
+        public GameObject depthToWorldOrientationText;
+        public GameObject targetToWorldText;
+
         public string identifier;
         public GameObject[] spheres;
         public bool disableUntilDetection = false;
@@ -116,6 +125,18 @@ namespace IRToolTrack
                 return;
             Int64 trackingTimestamp = irToolTracking.GetTimestamp();
             float[] tool_transform = irToolTracking.GetToolTransform(identifier);
+
+
+            // Depth To World Transform
+            float[] depthToWorldTransform = irToolTracking.GetDepthToWorldTransform();
+            //float[] depthToWorldTransform = new float[7] { 0,0,0,0,0,0,0};
+
+
+            Quaternion quat = new Quaternion(depthToWorldTransform[3], depthToWorldTransform[4], depthToWorldTransform[5], depthToWorldTransform[6]);
+            Vector3 pos = new Vector3(depthToWorldTransform[0], depthToWorldTransform[1], depthToWorldTransform[2]);
+
+            depthToWorld.transform.SetPositionAndRotation(pos, quat);
+
             if (tool_transform != null && tool_transform[0]!= float.NaN && tool_transform[7]!=0 && lastUpdate<trackingTimestamp)
             {
                 if (!childrenActive)
@@ -145,7 +166,6 @@ namespace IRToolTrack
                 childrenActive = false;
             }
 
-
             /*
             //Delay Positioning by one frame to maybe make it smoother
             if (lastUpdate == trackingTimestamp)
@@ -159,9 +179,58 @@ namespace IRToolTrack
                 //transform.rotation = Quaternion.Lerp(targetRotation, transform.rotation, 0.5f);
             }
             */
-            transform.position = targetPosition;
-            transform.rotation = targetRotation;
+
+
+            targetToDepth.transform.SetPositionAndRotation(targetPosition, targetRotation);
+            
+            
+            Matrix4x4 targetToWorldMatrix = depthToWorld.transform.localToWorldMatrix * targetToDepth.transform.localToWorldMatrix;
+
+            targetToWorldMatrix = FlipTransformRightLeft(targetToWorldMatrix);
+
+            Vector3 newPos = targetToWorldMatrix.GetPosition();
+
+            // How is this not working
+            transform.SetPositionAndRotation(targetToWorldMatrix.GetPosition(), targetToWorldMatrix.rotation);
             lastUpdate = trackingTimestamp;
+
+            //Debug.Log(this.transform.position.ToString());
+
+            Vector3 pos1 = targetToDepth.transform.position;
+            string text = "TargetToCamera: (" + System.Math.Round(pos1.x * 1000, 4).ToString()
+                + ", " + System.Math.Round(pos1.y * 1000, 4).ToString()
+                + ", " + System.Math.Round(pos1.z * 1000, 4).ToString() + ")";
+            targetToDepthText.GetComponent<TextMeshPro>().SetText(text);
+
+            Vector3 pos2 = depthToWorld.transform.position;
+            string text2 = "DepthToWorld: (" + System.Math.Round(pos2.x * 1000, 4).ToString()
+                + ", " + System.Math.Round(pos2.y * 1000, 4).ToString()
+                + ", " + System.Math.Round(pos2.z * 1000, 4).ToString() + ")";
+            depthToWorldText.GetComponent<TextMeshPro>().SetText(text2);
+
+            Quaternion pos4 = depthToWorld.transform.rotation;
+            string text4 = "DepthToWorldOrientation: (" + System.Math.Round(pos4.w, 4).ToString()
+                + ", " + System.Math.Round(pos4.x, 4).ToString()
+                + ", " + System.Math.Round(pos4.y, 4).ToString() 
+                + ", " + System.Math.Round(pos4.z, 4).ToString() + ")";
+            depthToWorldOrientationText.GetComponent<TextMeshPro>().SetText(text4);
+
+
+            Vector3 pos3 = this.transform.position;
+            string text3 = "TargetToWorld: (" + System.Math.Round(pos3.x * 1000, 4).ToString()
+                + ", " + System.Math.Round(pos3.y * 1000, 4).ToString()
+                + ", " + System.Math.Round(pos3.z * 1000, 4).ToString() + ")";
+            targetToWorldText.GetComponent<TextMeshPro>().SetText(text3);
+        }
+        Matrix4x4 FlipTransformRightLeft(Matrix4x4 matr)
+        {
+            matr.m20 = matr.m20 * -1.0f;
+            matr.m02 = matr.m02 * -1.0f;
+            matr.m21 = matr.m21 * -1.0f;
+            matr.m12 = matr.m12 * -1.0f;
+            matr.m23 = matr.m23 * -1.0f;
+            return matr;
+            
         }
     }
 }
