@@ -13,13 +13,8 @@ namespace IRToolTrack
     public class IRToolController : MonoBehaviour
     {
 
-        public GameObject depthToWorld;
-        public GameObject targetToDepth;
-        public GameObject targetToDepthText;
-        public GameObject depthToWorldText;
-        public GameObject depthToWorldOrientationText;
-        public GameObject targetToWorldText;
-
+        public GameObject StylusToDepth;
+        
         public string identifier;
         public GameObject[] spheres;
         public bool disableUntilDetection = false;
@@ -47,10 +42,12 @@ namespace IRToolTrack
 
         public float[] sphere_positions
         {
-            get {
-                float[] coordinates = new float[sphere_count*3];
+            get
+            {
+                float[] coordinates = new float[sphere_count * 3];
                 int cur_coord = 0;
-                for (int i = 0; i< sphere_count; i++) {
+                for (int i = 0; i < sphere_count; i++)
+                {
                     coordinates[cur_coord] = spheres[i].transform.localPosition.x;
                     coordinates[cur_coord + 1] = spheres[i].transform.localPosition.y;
                     coordinates[cur_coord + 2] = spheres[i].transform.localPosition.z;
@@ -82,12 +79,6 @@ namespace IRToolTrack
 #endif
         }
 
-        bool LoadROMFile(string romFilePath)
-        {
-            var romFile = Resources.Load(romFilePath);
-            return false;
-        }
-
         public enum Status
         {
             Inactive,
@@ -103,7 +94,7 @@ namespace IRToolTrack
                 return;
             }
             //_listener.Start();
-            Debug.Log("Started tracking "+identifier);
+            Debug.Log("Started tracking " + identifier);
             _subStatus = Status.Active;
         }
 
@@ -111,7 +102,7 @@ namespace IRToolTrack
         {
             if (_subStatus == Status.Inactive)
             {
-                Debug.Log("Tracking of "+identifier+" already stopped.");
+                Debug.Log("Tracking of " + identifier + " already stopped.");
                 return;
             }
             //_listener.Stop();
@@ -127,17 +118,7 @@ namespace IRToolTrack
             float[] tool_transform = irToolTracking.GetToolTransform(identifier);
 
 
-            // Depth To World Transform
-            float[] depthToWorldTransform = irToolTracking.GetDepthToWorldTransform();
-            //float[] depthToWorldTransform = new float[7] { 0,0,0,0,0,0,0};
-
-
-            Quaternion quat = new Quaternion(depthToWorldTransform[3], depthToWorldTransform[4], depthToWorldTransform[5], depthToWorldTransform[6]);
-            Vector3 pos = new Vector3(depthToWorldTransform[0], depthToWorldTransform[1], depthToWorldTransform[2]);
-
-            depthToWorld.transform.SetPositionAndRotation(pos, quat);
-
-            if (tool_transform != null && tool_transform[0]!= float.NaN && tool_transform[7]!=0 && lastUpdate<trackingTimestamp)
+            if (tool_transform != null && tool_transform[0] != float.NaN && tool_transform[7] != 0 && lastUpdate < trackingTimestamp)
             {
                 if (!childrenActive)
                 {
@@ -157,7 +138,7 @@ namespace IRToolTrack
                 targetPosition = new Vector3(tool_transform[0], tool_transform[1], tool_transform[2]);
                 lastSpotted = Time.time;
             }
-            else if (childrenActive && disableWhenTrackingLost && Time.time-lastSpotted>secondsLostUntilDisable)
+            else if (childrenActive && disableWhenTrackingLost && Time.time - lastSpotted > secondsLostUntilDisable)
             {
                 for (int i = 0; i < transform.childCount; i++)
                 {
@@ -166,71 +147,10 @@ namespace IRToolTrack
                 childrenActive = false;
             }
 
-            /*
-            //Delay Positioning by one frame to maybe make it smoother
-            if (lastUpdate == trackingTimestamp)
-            {
-                transform.position = targetPosition;
-                //transform.rotation = Quaternion.Lerp(targetRotation, transform.rotation, 0);
-            }
-            else
-            {
-                transform.position = Vector3.Lerp(targetPosition, transform.position, 0.5f);
-                //transform.rotation = Quaternion.Lerp(targetRotation, transform.rotation, 0.5f);
-            }
-            */
-
-
-            targetToDepth.transform.SetPositionAndRotation(targetPosition, targetRotation);
-            
-            
-            Matrix4x4 targetToWorldMatrix = depthToWorld.transform.localToWorldMatrix * targetToDepth.transform.localToWorldMatrix;
-
-            targetToWorldMatrix = FlipTransformRightLeft(targetToWorldMatrix);
-
-            Vector3 newPos = targetToWorldMatrix.GetPosition();
-
-            // How is this not working
-            transform.SetPositionAndRotation(targetToWorldMatrix.GetPosition(), targetToWorldMatrix.rotation);
+            // Set Stylus To Depth Pose
+            this.StylusToDepth.transform.SetPositionAndRotation(targetPosition, targetRotation);
             lastUpdate = trackingTimestamp;
 
-            //Debug.Log(this.transform.position.ToString());
-
-            Vector3 pos1 = targetToDepth.transform.position;
-            string text = "TargetToCamera: (" + System.Math.Round(pos1.x * 1000, 4).ToString()
-                + ", " + System.Math.Round(pos1.y * 1000, 4).ToString()
-                + ", " + System.Math.Round(pos1.z * 1000, 4).ToString() + ")";
-            targetToDepthText.GetComponent<TextMeshPro>().SetText(text);
-
-            Vector3 pos2 = depthToWorld.transform.position;
-            string text2 = "DepthToWorld: (" + System.Math.Round(pos2.x * 1000, 4).ToString()
-                + ", " + System.Math.Round(pos2.y * 1000, 4).ToString()
-                + ", " + System.Math.Round(pos2.z * 1000, 4).ToString() + ")";
-            depthToWorldText.GetComponent<TextMeshPro>().SetText(text2);
-
-            Quaternion pos4 = depthToWorld.transform.rotation;
-            string text4 = "DepthToWorldOrientation: (" + System.Math.Round(pos4.w, 4).ToString()
-                + ", " + System.Math.Round(pos4.x, 4).ToString()
-                + ", " + System.Math.Round(pos4.y, 4).ToString() 
-                + ", " + System.Math.Round(pos4.z, 4).ToString() + ")";
-            depthToWorldOrientationText.GetComponent<TextMeshPro>().SetText(text4);
-
-
-            Vector3 pos3 = this.transform.position;
-            string text3 = "TargetToWorld: (" + System.Math.Round(pos3.x * 1000, 4).ToString()
-                + ", " + System.Math.Round(pos3.y * 1000, 4).ToString()
-                + ", " + System.Math.Round(pos3.z * 1000, 4).ToString() + ")";
-            targetToWorldText.GetComponent<TextMeshPro>().SetText(text3);
-        }
-        Matrix4x4 FlipTransformRightLeft(Matrix4x4 matr)
-        {
-            matr.m20 = matr.m20 * -1.0f;
-            matr.m02 = matr.m02 * -1.0f;
-            matr.m21 = matr.m21 * -1.0f;
-            matr.m12 = matr.m12 * -1.0f;
-            matr.m23 = matr.m23 * -1.0f;
-            return matr;
-            
         }
     }
 }

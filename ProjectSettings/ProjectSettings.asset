@@ -12,8 +12,8 @@ PlayerSettings:
   targetDevice: 2
   useOnDemandResources: 0
   accelerometerFrequency: 60
-  companyName: JHU_TUM_LCSR
-  productName: HL2IRToolTrackingSample
+  companyName: DanielAllen
+  productName: DepthCameraCalibration
   defaultCursor: {fileID: 0}
   cursorHotspot: {x: 0, y: 0}
   m_SplashScreenBackgroundColor: {r: 0.13725491, g: 0.12156863, b: 0.1254902, a: 1}
@@ -939,14 +939,14 @@ PlayerSettings:
   apiCompatibilityLevelPerPlatform: {}
   m_RenderingPath: 1
   m_MobileRenderingPath: 1
-  metroPackageName: HL2IRToolTrackingSample
+  metroPackageName: DepthCameraCalibration
   metroPackageVersion: 1.0.0.0
   metroCertificatePath: Assets/WSATestCertificate.pfx
   metroCertificatePassword: '|ixi~k~|'
   metroCertificateSubject: Test
   metroCertificateIssuer: Test
   metroCertificateNotAfter: 8014c982a821db01
-  metroApplicationDescription: MSc - HipArthroscopy
+  metroApplicationDescription: DepthCameraCalibration
   wsaImages:
     65636: 
     65661: 
@@ -991,7 +991,6 @@ PlayerSettings:
   metroSplashScreenUseBackgroundColor: 1
   platformCapabilities:
     WindowsStoreApps:
-      EnterpriseAuthentication: False
       OfflineMapsManagement: False
       HumanInterfaceDevice: False
       Location: False
@@ -1004,6 +1003,7 @@ PlayerSettings:
       InternetClientServer: True
       VideosLibrary: False
       Objects3D: False
+      InternetClient: True
       RemoteSystem: False
       BlockedChatMessages: False
       PhoneCall: False
@@ -1026,9 +1026,9 @@ PlayerSettings:
       RecordedCallsFolder: False
       Contacts: False
       Proximity: False
-      InternetClient: True
       CodeGeneration: False
       BackgroundMediaPlayback: False
+      EnterpriseAuthentication: False
   metroTargetDeviceFamilies:
     Desktop: False
     Holographic: True
