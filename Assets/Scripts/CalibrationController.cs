@@ -35,6 +35,8 @@ public class CalibrationController : MonoBehaviour
     Vector3 pluginPos;
     Vector3 opticalSum;
     Vector3 pluginSum;
+    Vector3 opticalAvg;
+    Vector3 pluginAvg;
 
     public void Start()
     {
@@ -131,12 +133,15 @@ public class CalibrationController : MonoBehaviour
 
         ConfirmationText.GetComponent<TextMeshPro>().SetText("Collecting Frames...");
 
-        for (int i=0; i < numFrames; i++)
+        opticalSum = new Vector3(0,0,0);
+        pluginSum = new Vector3(0,0,0);
+
+        for (int i=1; i < numFrames; i++)
         {
             opticalPos = StylusToHololens.transform.position;
             pluginPos = StylusToDepth.transform.position;
 
-            opticalPoints.Add(opticalPos);
+            //opticalPoints.Add(opticalPos);
 
             opticalSum += opticalPos;
             pluginSum += pluginPos;
@@ -144,14 +149,14 @@ public class CalibrationController : MonoBehaviour
             yield return null;
         }
         // Calculate point average
-        opticalPos = opticalSum/numFrames;
-        pluginPos = pluginSum/numFrames;
+        opticalAvg = opticalSum/numFrames;
+        pluginAvg = pluginSum/numFrames;
 
         ConfirmationText.GetComponent<TextMeshPro>().SetText("Frame Collection Complete");
 
         // Add to list
-        opticalPoints.Add(opticalPos);
-        pluginPoints.Add(pluginPos);
+        opticalPoints.Add(opticalAvg);
+        pluginPoints.Add(pluginAvg);
 
         
     }
