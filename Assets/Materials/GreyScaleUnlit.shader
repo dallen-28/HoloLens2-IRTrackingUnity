@@ -30,6 +30,8 @@
 Shader "Unlit/GreyScale" {
     Properties{
         _MainTex("Texture", 2D) = "black" { }
+        _Brightness("Brightness", Range(-1, 1)) = 0
+        _Contrast("Contrast", Range(-2 , 4)) = 1
     }
         SubShader{
             Pass {
@@ -41,6 +43,8 @@ Shader "Unlit/GreyScale" {
                 #include "UnityCG.cginc"
 
                 sampler2D _MainTex;
+                float _Brightness;
+                float _Contrast;
 
                 struct appdata {
                     float4 vertex : POSITION;
@@ -69,15 +73,23 @@ Shader "Unlit/GreyScale" {
 
                     o.pos = UnityObjectToClipPos(v.vertex);
                     o.uv = TRANSFORM_TEX(v.texcoord, _MainTex);
+
+                    
+
                     return o;
                 }
+
 
                 fixed4 frag(v2f i) : COLOR
                 {
                     UNITY_SETUP_INSTANCE_ID(i);
-
-                    float texcol = tex2D(_MainTex, i.uv).a;
-                    return fixed4(texcol, texcol, texcol, 1.0f);
+                    
+                    // 
+                    float texcol = tex2D(_MainTex, i.uv).r;
+                    fixed4 color = fixed4(texcol, texcol, texcol, 1.0f);
+                    color.rgb += _Brightness;
+                    color.rgb = (color.rgb - 0.5) * _Contrast + 0.5;
+                    return color;
                 }
 
                 ENDCG

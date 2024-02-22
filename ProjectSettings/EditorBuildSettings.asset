@@ -8,9 +8,15 @@ EditorBuildSettings:
   - enabled: 0
     path: Assets/Scenes/TrackingSample.unity
     guid: 1952f9f5bd184f4418ed47df04060c8c
-  - enabled: 1
+  - enabled: 0
     path: Assets/Scenes/DepthCameraCalibration.unity
     guid: 9ff13d749632eed448dc60dce96e2ebe
+  - enabled: 0
+    path: Assets/Scenes/ShaderTest.unity
+    guid: 00dccba704bf93c43b56844d3b2f3146
+  - enabled: 1
+    path: Assets/Scenes/SampleScene.unity
+    guid: 9fc0d4010bbf28b4594072e72b8655ab
   m_configObjects:
     UnityEditor.XR.ARCore.ARCoreSettings: {fileID: 11400000, guid: a9b2142c24aad574eb8f369b110105ca,
       type: 2}
