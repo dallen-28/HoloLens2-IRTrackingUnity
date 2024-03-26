@@ -8,7 +8,7 @@ Material:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_Name: Test
-  m_Shader: {fileID: 4800000, guid: af7eb944993a5ce44a80ae969aeaad23, type: 3}
+  m_Shader: {fileID: 4800000, guid: d880dd99c6e2e17438e4dc180f6f199d, type: 3}
   m_ValidKeywords: []
   m_InvalidKeywords:
   - _ALPHAPREMULTIPLY_ON
@@ -68,13 +68,13 @@ Material:
     m_Ints: []
     m_Floats:
     - _BlendOp: 0
-    - _Brightness: 0.09712303
+    - _Brightness: 0.1
     - _BumpScale: 1
     - _CameraFadingEnabled: 0
     - _CameraFarFadeDistance: 2
     - _CameraNearFadeDistance: 1
     - _ColorMode: 0
-    - _Contrast: 1
+    - _Contrast: 0.25
     - _Cull: 2
     - _Cutoff: 0.5
     - _DetailNormalMapScale: 1
@@ -93,15 +93,17 @@ Material:
     - _Mode: 3
     - _OcclusionStrength: 1
     - _Parallax: 0.02
-    - _Sharpness: 0
+    - _Sharpness: 0.7
     - _SmoothnessTextureChannel: 0
     - _SoftParticlesEnabled: 0
     - _SoftParticlesFarFadeDistance: 1
     - _SoftParticlesNearFadeDistance: 0
     - _SpecularHighlights: 1
     - _SrcBlend: 1
-    - _Temperature: 0
+    - _Temperature: 0.03
     - _Tint: -0.83652985
+    - _Tint1: 0
+    - _Tint2: 0
     - _UVSec: 0
     - _ZWrite: 0
     m_Colors:

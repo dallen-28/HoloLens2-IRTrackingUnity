@@ -136,7 +136,7 @@ public class CalibrationController : MonoBehaviour
         opticalSum = new Vector3(0,0,0);
         pluginSum = new Vector3(0,0,0);
 
-        for (int i=1; i < numFrames; i++)
+        for (int i=1; i <= numFrames; i++)
         {
             opticalPos = StylusToHololens.transform.position;
             pluginPos = StylusToDepth.transform.position;
