@@ -11,22 +11,27 @@ using System.Collections.Generic;
 
 public class OpenIGTLinkConnect2 : MonoBehaviour
 {
-    public string configFilePath = "Config2.txt";
+
     public int scaleMultiplier = 1000; // Metres to millimetres
 
     //Set from config.txt, which is located in the project folder when run from the editor
     public string ipString = "127.0.0.1";
-    public int port = 18945;
+    public int port = 18944;
+
+    //Set from Unity editor
     public GameObject[] GameObjects;
     public int msDelay = 33;
+    private byte[][] messageDataBuffers;
+    private string[] GameObjectTags;
+
 
     private float totalTime = 0f;
 
     //CRC ECMA-182
     private CRC64 crcGenerator;
     private string CRC;
-    //private string crcPolynomialBinary = "10100001011110000111000011110101110101001111010100011011010010011";
-    private string crcPolynomialBinary = "1000000011100000111000011110101110101001111010100011011010010011";
+    //private string crcPolynomialBinary = "10100001011110000111000011110101110101001111010100011011010010011"; // changed by KKC 20 Feb 2023
+    private string crcPolynomialBinary = "1010000101111000011100001111010111010100111101010001101101001001";
     private ulong crcPolynomial;
 
     private Socket socket;
@@ -40,71 +45,49 @@ public class OpenIGTLinkConnect2 : MonoBehaviour
     // Receive transform queue
     public readonly static Queue<Action> ReceiveTransformQueue = new Queue<Action>();
 
-
     private bool connectionStarted = false;
 
     // Use this for initialization
     void Start()
     {
-        //debugText.GetComponent<TextMeshPro>().SetText("Test");
-
+        Debug.Log(String.Format("OpenIGTLink is Starting"));
         // Initialize CRC Generator
         crcGenerator = new CRC64();
-
-        try
-        {
-            crcPolynomial = Convert.ToUInt64(crcPolynomialBinary, 2);
-        }
-        catch (Exception e)
-        {
-            Debug.Log(String.Format("Exception : {0}", e.ToString()));
-        }
-
+        crcPolynomial = Convert.ToUInt64(crcPolynomialBinary, 2);
         crcGenerator.Init(crcPolynomial);
 
-        try
+        // Load settings from file
+        FileInfo iniFile = new FileInfo("config.txt");
+        StreamReader reader = iniFile.OpenText();
+        string text = reader.ReadLine();
+        //if (text != null) ipString = text; edited KKC 21 Feb 2023 for debugging
+        ipString = "127.0.0.1";
+
+        text = reader.ReadLine();
+        if (text != null) port = int.Parse(text);
+
+        //Collection of data buffers
+        messageDataBuffers = new byte[GameObjects.Length][];
+
+        // Get Tags and put in tag list
+        GameObjectTags = new string[GameObjects.Length];
+        for (int i = 0; i < GameObjects.Length; i++)
         {
-            // Load settings from file
-            // Format of Config file is:
-            // IPAddress
-            // Port
-            string path = configFilePath;
-
-            // Uncomment line below for deploying to Hololens
-            path = Path.Combine(Application.persistentDataPath, path);
-
-
-            //FileInfo iniFile = new FileInfo("config.txt");
-            FileInfo iniFile = new FileInfo(path);
-            StreamReader reader = iniFile.OpenText();
-            string ipStringText = reader.ReadLine();
-            string portText = reader.ReadLine();
-
-
-            if (ipStringText != string.Empty && ipStringText != null)
-                ipString = ipStringText;
-            if (portText != string.Empty && portText != null)
-                port = int.Parse(portText);
-
-
+            GameObjectTags[i] = GameObjects[i].tag;
+            Debug.Log(String.Format("Tag {0} = {1}", i, GameObjectTags[i]));
         }
-        catch (Exception e)
-        {
-            Debug.Log(String.Format("Exception : {0}", e.ToString()));
-        }
-
 
         // TODO: Connect on prompt rather than application start
         StartupClient();
-    }
-    public void Connect()
-    {
-        StartupClient();
+
+
+
     }
 
     private void StartupClient()
     {
         // Attempt to Connect
+        Debug.Log(String.Format("IGTLink: Attempting to connect"));
         try
         {
             // Establish the remote endpoint for the socket.
@@ -122,7 +105,7 @@ public class OpenIGTLinkConnect2 : MonoBehaviour
                 connectionStarted = true;
 
                 StartCoroutine(Receive());
-                Debug.Log(String.Format("Ready to receive data"));
+                Debug.Log(String.Format("IGTLink: Connected! Ready to receive data"));
             }
             catch (Exception e)
             {
@@ -145,7 +128,7 @@ public class OpenIGTLinkConnect2 : MonoBehaviour
             // Complete the connection.
             client.EndConnect(ar);
 
-            Debug.Log(String.Format("Socket connected"));
+            Debug.Log(String.Format("IGTLink: Socket connected"));
 
             // Signal that the connection has been made.
             connectDone.Set();
@@ -159,8 +142,6 @@ public class OpenIGTLinkConnect2 : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        //Debug.Log(ReceiveTransformQueue.Count);
-
         // Repeat every msDelay millisecond
         if (totalTime * 1000 > msDelay)
         {
@@ -180,11 +161,27 @@ public class OpenIGTLinkConnect2 : MonoBehaviour
                     }
                 }
 
-                // Perform all queued Receive Transforms
+
+                // Grab latest buffer data and transform objects with it (added by KKC)
+                for (int i = 0; i < GameObjects.Length; i++)
+                {
+                    if (messageDataBuffers[i] != null)
+                    {
+                        ApplyTransformToGameObject(ProcessTransformMessage(messageDataBuffers[i]), GameObjects[i]);
+                    }
+                    else
+                    {
+                        Debug.Log(String.Format("No data in buffer for GameObject: {0}; check to make sure OpenIGTLink server is running or configured correctly!", GameObjects[i].name));
+                    }
+                }
+
+                // Deprecated KKC 19 April 2024, replaced with the above.
+                /*// Perform all queued Receive Transforms
                 while (ReceiveTransformQueue.Count > 0)
                 {
+                    //Debug.Log("Trying to Dequeue");
                     ReceiveTransformQueue.Dequeue().Invoke();
-                }
+                }*/
             }
             // Reset timer
             totalTime = 0f;
@@ -221,7 +218,7 @@ public class OpenIGTLinkConnect2 : MonoBehaviour
         try
         {
             // Create the state object.
-            StateObject state = new StateObject();
+            StateObject2 state = new StateObject2();
             state.workSocket = client;
 
             // Begin receiving the data from the remote device.
@@ -233,10 +230,10 @@ public class OpenIGTLinkConnect2 : MonoBehaviour
         }
     }
 
-    private void ReceiveStart(StateObject state)
+    private void ReceiveStart(StateObject2 state)
     {
         Socket client = state.workSocket;
-        client.BeginReceive(state.buffer, 0, StateObject.BufferSize, 0, new AsyncCallback(ReceiveCallback), state);
+        client.BeginReceive(state.buffer, 0, StateObject2.BufferSize, 0, new AsyncCallback(ReceiveCallback), state);
     }
 
     private void ReceiveCallback(IAsyncResult ar)
@@ -245,17 +242,15 @@ public class OpenIGTLinkConnect2 : MonoBehaviour
         {
             // Retrieve the state object and the client socket 
             // from the asynchronous state object.
-            StateObject state = (StateObject)ar.AsyncState;
+            StateObject2 state = (StateObject2)ar.AsyncState;
             Socket client = state.workSocket;
 
             // Read data from the remote device.
             int bytesRead = client.EndReceive(ar);
 
-            //Debug.Log(bytesRead);
-
             // As far as I can tell, Unity will not let the callback occur with 0 bytes to read, so I cannot use a 0 bytes left method to determine ending, must read the data type and size from the Header
             // TODO: Current workaround: adding check for a full buffer of transforms (divisible by 106), this may fail with other data types, must make overflow buffer work as well
-            if ((bytesRead > 0) && (bytesRead % 106 == 0))
+            if ((bytesRead > 0) & (bytesRead % 106 == 0))
             {
                 // There might be more data, so store the data received so far.
                 byte[] readBytes = new Byte[bytesRead];
@@ -274,23 +269,21 @@ public class OpenIGTLinkConnect2 : MonoBehaviour
                         state.name = Encoding.ASCII.GetString(state.byteList.GetRange(14, 20).ToArray()).Replace("\0", string.Empty);
                         byte[] dataSizeBytes = state.byteList.GetRange(42, 8).ToArray();
 
-                        //Debug.Log(state.name);
-
                         if (BitConverter.IsLittleEndian)
                         {
                             Array.Reverse(dataSizeBytes);
                         }
                         state.dataSize = BitConverter.ToInt32(dataSizeBytes, 0) + 58;
 
-                        //Debug.Log(String.Format("Data is of type {0} with name {1} and size {2}", dataType, state.name, state.dataSize));
+                        Debug.Log(String.Format("Data is of type {0} with name {1} and size {2}", dataType, state.name, state.dataSize));
 
                         if (dataType.Equals("IMAGE"))
                         {
-                            state.dataType = StateObject.DataTypes.IMAGE;
+                            state.dataType = StateObject2.DataTypes.IMAGE;
                         }
                         else if (dataType.Equals("TRANSFORM"))
                         {
-                            state.dataType = StateObject.DataTypes.TRANSFORM;
+                            state.dataType = StateObject2.DataTypes.TRANSFORM;
                         }
                         else
                         {
@@ -303,24 +296,31 @@ public class OpenIGTLinkConnect2 : MonoBehaviour
 
                     if (state.totalBytesRead == state.dataSize)
                     {
-                        //Debug.Log("Exact Bytes");
-                        //Debug.Log(state.name);
-
                         // All the data has arrived; put it in response.
                         if (state.byteList.Count > 1)
                         {
                             // Send off to interpret data based on data type
-                            if (state.dataType == StateObject.DataTypes.TRANSFORM)
+                            if (state.dataType == StateObject2.DataTypes.TRANSFORM)
                             {
-
-                                //Debug.Log(state.name);
-
-
-                                OpenIGTLinkConnect.ReceiveTransformQueue.Enqueue(() =>
+                                // Figure out which game object it goes with
+                                for (int i = 0; i < GameObjects.Length; i++)
                                 {
-                                    //transformNames.Enqueue(state.name);
+                                    // If data matches game object name, shove into buffer. Otherwise do nothing
+                                    //if (GameObjects[i].CompareTag(state.name))
+                                    if (GameObjectTags[i].Equals(state.name))
+                                    {
+                                        messageDataBuffers[i] = state.byteList.ToArray();
+                                    }
+                                }
+
+
+
+
+                                // Deprecated by KKC 19 April 2024
+                                /*OpenIGTLinkConnect.ReceiveTransformQueue.Enqueue(() =>
+                                {
                                     StartCoroutine(ReceiveTransformMessage(state.byteList.ToArray(), state.name));
-                                });
+                                });*/
                             }
                         }
                         // Signal that all bytes have been received.
@@ -329,22 +329,38 @@ public class OpenIGTLinkConnect2 : MonoBehaviour
                     }
                     else if ((state.totalBytesRead > state.dataSize) & (state.byteList.Count > state.dataSize) & state.dataSize > 0)
                     {
-                        //Debug.Log("Overflow");
-                        //Debug.Log(state.name);
-
                         // More data than expected has arrived; put it in response and repeat.
                         // Send off to interpret data based on data type
-                        if (state.dataType == StateObject.DataTypes.TRANSFORM)
+                        if (state.dataType == StateObject2.DataTypes.TRANSFORM)
                         {
-                            //Debug.Log(state.name);
+                            // See above
+                            try
+                            {
+                                // Figure out which game object it goes with
+                                for (int i = 0; i < GameObjects.Length; i++)
+                                {
+                                    // If data matches game object name, shove into buffer. Otherwise do nothing
+                                    //if (GameObjects[i].CompareTag(state.name))
+                                    if (GameObjectTags[i].Equals(state.name))
+                                    {
+                                        messageDataBuffers[i] = state.byteList.GetRange(0, state.dataSize).ToArray();
+                                    }
+                                }
+                            }
+                            catch (Exception e)
+                            {
+                                Debug.Log(String.Format("{0} receiving {1} with total {2}", state.byteList.Count, state.dataSize, state.totalBytesRead));
+                                Debug.Log(String.Format(e.ToString()));
+                            }
 
-                            //transformNames.Enqueue(state.name);
-                            OpenIGTLinkConnect.ReceiveTransformQueue.Enqueue(() =>
+
+
+                            // Deprecated by KKC 19 April 2024
+                            /*OpenIGTLinkConnect.ReceiveTransformQueue.Enqueue(() =>
                             {
                                 try
                                 {
                                     //Debug.Log(state.dataSize);
-
                                     StartCoroutine(ReceiveTransformMessage(state.byteList.GetRange(0, state.dataSize).ToArray(), state.name));
                                 }
                                 catch (Exception e)
@@ -352,7 +368,7 @@ public class OpenIGTLinkConnect2 : MonoBehaviour
                                     Debug.Log(String.Format("{0} receiving {1} with total {2}", state.byteList.Count, state.dataSize, state.totalBytesRead));
                                     Debug.Log(String.Format(e.ToString()));
                                 }
-                            });
+                            });*/
                         }
                         state.byteList.RemoveRange(0, state.dataSize);
                         state.totalBytesRead = state.totalBytesRead - state.dataSize;
@@ -380,17 +396,19 @@ public class OpenIGTLinkConnect2 : MonoBehaviour
         }
     }
 
-    IEnumerator ReceiveTransformMessage(byte[] data, string transformName)
-    {
-        //Debug.Log(transformName);
 
+    // DEPRECATED BY KKC 19 APRIL 2024
+    /*IEnumerator ReceiveTransformMessage(byte[] data, string transformName)
+    {
         // Find Game Objects with Transform Name and determine if they should be updated
         string objectName;
-        foreach (GameObject gameObject in GameObjects)
+        
+        //foreach (GameObject gameObject in GameObjects)
         {
+            GameObject gameObject = GameObjects[1];
+            
             // Could be a bit more efficient
-            if (gameObject.name.Length > 20)
-            {
+            if (gameObject.name.Length > 20){
                 objectName = gameObject.name.Substring(0, 20);
             }
             else
@@ -398,14 +416,17 @@ public class OpenIGTLinkConnect2 : MonoBehaviour
                 objectName = gameObject.name;
             }
 
-            if (objectName.Equals(transformName) && gameObject.GetComponent<OpenIGTLinkFlag>().ReceiveTransform)
+            if (objectName.Equals(transformName) & gameObject.GetComponent<OpenIGTLinkFlag>().ReceiveTransform)
             {
+                // -----------------------------------------------------------------------------------------------------------DEBUG
+                //Debug.Log("Working on Queue, "+ objectName);
+                
                 // Transform Matrix starts from byte 58 until 106
                 // Extract transform matrix
                 byte[] matrixBytes = new byte[4];
                 float[] m = new float[12];
                 for (int i = 0; i < 12; i++)
-                {
+                { 
                     Buffer.BlockCopy(data, 58 + i * 4, matrixBytes, 0, 4);
                     if (BitConverter.IsLittleEndian)
                     {
@@ -413,7 +434,7 @@ public class OpenIGTLinkConnect2 : MonoBehaviour
                     }
 
                     m[i] = BitConverter.ToSingle(matrixBytes, 0);
-
+                    
                 }
 
                 // Slicer units are in millimeters, Unity is in meters, so convert accordingly
@@ -430,18 +451,68 @@ public class OpenIGTLinkConnect2 : MonoBehaviour
                 IJKToRAS.SetRow(2, new Vector4(0, 0, 1.0f, 0));
                 IJKToRAS.SetRow(3, new Vector4(0.0f, 0.0f, 0.0f, 1.0f));
 
-                //Matrix4x4 matrixRAS = matrix * IJKToRAS;
-                Matrix4x4 matrixRAS = matrix;
+                Matrix4x4 matrixRAS = matrix * IJKToRAS;
 
                 Vector3 translation = matrix.GetColumn(3);
-                gameObject.transform.localPosition = new Vector3(translation.x, translation.y, translation.z);
-                Vector3 eulerAngles = matrix.rotation.eulerAngles;
-                gameObject.transform.localRotation = Quaternion.Euler(eulerAngles.x, eulerAngles.y, eulerAngles.z);
+                gameObject.transform.localPosition = new Vector3(-translation.x, translation.y, translation.z);
+                Vector3 eulerAngles = GetRotation(matrix).eulerAngles;
+                gameObject.transform.localRotation = Quaternion.Euler(eulerAngles.x, -eulerAngles.y, -eulerAngles.z);
+
             }
+            //Debug.Log("Interating OBjects!@");
+            *//*if(ObjectTracker == numberObjects - 1)
+            {
+                ObjectTracker = 0;
+            }
+            else
+            {
+                ObjectTracker++;
+            }*//*
         }
         // Place this inside the loop if you only want to perform one loop per update cycle
         yield return null;
+    }*/
+
+
+
+    // Process packet from data buffer (added by KKC 19 April 2024)
+    private Matrix4x4 ProcessTransformMessage(byte[] data)
+    {
+        byte[] matrixBytes = new byte[4];
+        float[] m = new float[12];
+        for (int i = 0; i < 12; i++)
+        {
+            Buffer.BlockCopy(data, 58 + i * 4, matrixBytes, 0, 4);
+            if (BitConverter.IsLittleEndian)
+            {
+                Array.Reverse(matrixBytes);
+            }
+
+            m[i] = BitConverter.ToSingle(matrixBytes, 0);
+
+        }
+
+        // Slicer units are in millimeters, Unity is in meters, so convert accordingly
+        // Definition for Matrix4x4 is extended from SteamVR
+        Matrix4x4 matrix = new Matrix4x4();
+        matrix.SetRow(0, new Vector4(m[0], m[3], m[6], m[9] / scaleMultiplier));
+        matrix.SetRow(1, new Vector4(m[1], m[4], m[7], m[10] / scaleMultiplier));
+        matrix.SetRow(2, new Vector4(m[2], m[5], m[8], m[11] / scaleMultiplier));
+        matrix.SetRow(3, new Vector4(0.0f, 0.0f, 0.0f, 1.0f));
+
+        return matrix;
     }
+
+
+    // Apply transform information to GameObject
+    public void ApplyTransformToGameObject(Matrix4x4 matrix, GameObject gameObject)
+    {
+        Vector3 translation = matrix.GetColumn(3);
+        Vector3 rotation = matrix.rotation.eulerAngles;
+        gameObject.transform.localPosition = new Vector3(-translation.x, translation.y, translation.z);
+        gameObject.transform.localRotation = Quaternion.Euler(rotation.x, -rotation.y, -rotation.z);
+    }
+
 
     // -------------------- Send -------------------- 
     private void Send(Socket client, byte[] msg)
@@ -667,4 +738,49 @@ public class OpenIGTLinkConnect2 : MonoBehaviour
         //For lowercase:
         //return val - (val < 58 ? 48 : 87);
     }
+
+    private static Quaternion GetRotation(Matrix4x4 matrix)
+    {
+        Quaternion q = new Quaternion();
+        q.w = Mathf.Sqrt(Mathf.Max(0, 1 + matrix.m00 + matrix.m11 + matrix.m22)) / 2;
+        q.x = Mathf.Sqrt(Mathf.Max(0, 1 + matrix.m00 - matrix.m11 - matrix.m22)) / 2;
+        q.y = Mathf.Sqrt(Mathf.Max(0, 1 - matrix.m00 + matrix.m11 - matrix.m22)) / 2;
+        q.z = Mathf.Sqrt(Mathf.Max(0, 1 - matrix.m00 - matrix.m11 + matrix.m22)) / 2;
+        q.x = _copysign(q.x, matrix.m21 - matrix.m12);
+        q.y = _copysign(q.y, matrix.m02 - matrix.m20);
+        q.z = _copysign(q.z, matrix.m10 - matrix.m01);
+        return q;
+    }
+
+    private static float _copysign(float sizeval, float signval)
+    {
+        return Mathf.Sign(signval) == 1 ? Mathf.Abs(sizeval) : -Mathf.Abs(sizeval);
+    }
+}
+
+
+
+// Receive Object
+public class StateObject2
+{
+    // Client socket.
+    public Socket workSocket = null;
+    // Size of receive buffer.
+    public const int BufferSize = 4194304;
+    // Receive buffer.
+    public byte[] buffer = new byte[BufferSize];
+    // Received data string.
+    //public StringBuilder sb = new StringBuilder();
+    public List<Byte> byteList = new List<Byte>();
+    // OpenIGTLink Data Type
+    public enum DataTypes { IMAGE = 0, TRANSFORM };
+    public DataTypes dataType;
+    // Header read or not
+    public bool headerRead = false;
+    // Data Size read from header
+    public int dataSize = -1;
+    // Bytes of data read so far
+    public int totalBytesRead = 0;
+    // Transform Name
+    public string name;
 }

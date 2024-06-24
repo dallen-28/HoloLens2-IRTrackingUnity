@@ -1118,7 +1118,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: Collecting Frames...
+  m_text: Test
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
   m_sharedMaterial: {fileID: 2180264, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
@@ -2526,7 +2526,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: 'StylusToHL2: (357.8851, -86.4605, 486.5178)'
+  m_text: Test
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
   m_sharedMaterial: {fileID: 2180264, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
@@ -4120,16 +4120,14 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 62c8122a822271245a67fed13bf48fdf, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  StylusToDepth: {fileID: 1080853359}
-  StylusToCamera: {fileID: 1812996218}
-  StylusToHololens: {fileID: 1363456950}
-  HololensToDepth: {fileID: 827354458}
+  StylusTipToCamera: {fileID: 0}
+  TargetToCamera: {fileID: 0}
   DepthToWorld: {fileID: 1228285196}
-  StylusToDepthText: {fileID: 5910559870623024482}
-  StylusToHololensText: {fileID: 1049512550}
-  SampleToolIR: {fileID: 235435421}
-  SampleToolOptical: {fileID: 1069073735}
-  showOverlay: 1
+  StylusTipToWorld: {fileID: 0}
+  TargetToWorld: {fileID: 0}
+  StylusTipToCameraText: {fileID: 0}
+  TargetToCameraText: {fileID: 0}
+  DepthToWorldText: {fileID: 0}
 --- !u!1 &1777852990
 GameObject:
   m_ObjectHideFlags: 0
@@ -5146,7 +5144,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: 'StylusToDepth: (-99.8851, -191.9242, 531.5797)'
+  m_text: Test
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
   m_sharedMaterial: {fileID: 2180264, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}

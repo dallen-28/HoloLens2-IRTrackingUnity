@@ -318,7 +318,7 @@ public class OpenIGTLinkConnect : MonoBehaviour
 
                     else if (state.totalBytesRead == state.dataSize)
                     {
-                        Debug.Log("Exact Amount of data");
+                        //Debug.Log("Exact Amount of data");
 
                         // All the data has arrived; put it in response.
                         if (state.byteList.Count > 1)
@@ -340,7 +340,7 @@ public class OpenIGTLinkConnect : MonoBehaviour
                     }
                     else if ((state.totalBytesRead > state.dataSize) && (state.byteList.Count > state.dataSize) && (state.dataSize > 0))
                     {
-                        Debug.Log("Overflow");
+                        //Debug.Log("Overflow");
 
                         // More data than expected has arrived; put it in response and repeat.
                         // Send off to interpret data based on data type
@@ -739,7 +739,8 @@ public class StateObject
     // Client socket.
     public Socket workSocket = null;
     // Size of receive buffer.
-    public const int BufferSize = 4194304;
+    //public const int BufferSize = 4194304;
+    public const int BufferSize = 106;
     //public const int BufferSize = 1024;
 
     // Receive buffer.
